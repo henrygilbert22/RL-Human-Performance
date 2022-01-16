@@ -75,13 +75,10 @@ class Enviroment:
         
         for col in moving_hot:
             self.processed_data[col] = moving_hot[col]
+    
+    def get_dataset(self):
         
-        print(self.processed_data)
-            
-        
-            
-        
-       
+        return self.processed_data.to_numpy()            
              
     def analytics(self):
         
