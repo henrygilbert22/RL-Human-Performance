@@ -2,9 +2,10 @@ from asyncio import SendfileNotAvailableError
 import os
 import sys
 import pandas as pd
+import numpy as np
 import json
 
-from dataclasses import dataclass
+from sklearn.preprocessing import OneHotEncoder
 
     
 # LatLnd: [0,1]
@@ -16,10 +17,15 @@ class Enviroment:
     
     chosen_inputs = {'altitude', 'distance', 'velocity_smooth', 'latlng', 'time', 'grade_smooth', 'moving', 'heartrate'}
     data = pd.DataFrame
+    processed_data = pd.DataFrame
     
     def __init__(self) -> None:
         
+        self.data = pd.DataFrame()
+        self.processed_data = pd.DataFrame()
+        
         self.load_data()
+        self.process_data()
     
     def load_data(self):
         
@@ -38,9 +44,44 @@ class Enviroment:
                 
         df = pd.DataFrame(data=dataset)
         df[['lat','lng']] = pd.DataFrame(df.latlng.tolist(), index=df.index)
+        df.drop('latlng', axis=1, inplace=True)
         
         self.data = df
+    
+    def process_data(self):
         
+        self.processed_data = pd.DataFrame(self.data)
+        
+        print(self.processed_data)
+        
+        numerical_processing = ['altitude', 'distance', 'velocity_smooth', 'lat', 'lng', 'grade_smooth', 'heartrate']
+        
+        for col in numerical_processing:
+            self.processed_data[col] = ((self.processed_data[col]-self.processed_data[col].mean())/self.processed_data[col].std())
+            
+        self.processed_data['time'] = self.processed_data['time'].apply(lambda x: int(x / 1800))
+        enc = OneHotEncoder(sparse=False)
+        
+        time_onehot = enc.fit_transform(self.processed_data[['time']])
+        t_hot = pd.DataFrame(time_onehot, columns=list(enc.categories_[0]))
+        self.processed_data.drop('time', axis=1, inplace=True)
+        
+        moving_onehot = enc.fit_transform(self.processed_data[['moving']])
+        moving_hot = pd.DataFrame(moving_onehot, columns=list(enc.categories_[0]))
+        self.processed_data.drop('moving', axis=1, inplace=True)
+        
+        for col in t_hot:
+            self.processed_data[col] = t_hot[col]
+        
+        for col in moving_hot:
+            self.processed_data[col] = moving_hot[col]
+        
+        print(self.processed_data)
+            
+        
+            
+        
+       
              
     def analytics(self):
         
