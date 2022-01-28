@@ -42,7 +42,7 @@ class Dynamics:
         model.add(LSTM(50, activation='relu', return_sequences=True, name="sequence2"))
         model.add(keras.layers.Dropout(0.2))
 
-        model.add(keras.layers.Dense((len(np.array(self.X[0]).flatten()))), name='finale'))
+        model.add(keras.layers.Dense((len(np.array(self.X[0]).flatten())), name='finale'))
 
         model.compile(loss='mean_squared_error', optimizer='adam')
         
