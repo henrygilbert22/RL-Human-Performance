@@ -22,12 +22,12 @@ class Dynamics:
         self.env = Enviroment()
         
         self.data = self.env.get_dataset()
-        
+                
     def shift_data(self):
         
         for i in range(self.look_behind, len(self.data) - self.shift_amount, 1):
-            self.X.append(self.data[i-self.look_behind: self.look_behind])          # Need to also account for adding in actions, do that somewhere else
-            self.Y.append(self.data[i+self.shift_amount])
+            self.X.append(self.data[i-self.look_behind: self.look_behind])    
+            self.Y.append(self.data[i+self.shift_amount][:-1])      # To remove the action in the output, we don't need to predict the next action, just next state
     
     def build_model(self):
         
@@ -49,7 +49,7 @@ class Dynamics:
         
         
 def main():
-    d = Dynamics()
+    d = Dynamics(5, 1)
 
 if __name__ == '__main__':
     main()

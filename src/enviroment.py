@@ -19,12 +19,15 @@ class Enviroment:
     data = pd.DataFrame
     processed_data = pd.DataFrame
     
+    actions: list = []
+    
     def __init__(self) -> None:
         
         self.data = pd.DataFrame()
         self.processed_data = pd.DataFrame()
         
         self.load_data()
+        self.infer_actions()
         self.process_data()
     
     def load_data(self):
@@ -48,12 +51,42 @@ class Enviroment:
         
         self.data = df
     
+    def infer_actions(self):
+        
+        actions = []
+        velocities = list(self.data['velocity_smooth'])
+        gradients = list(self.data['grade_smooth'])
+        
+        for i in range(len(velocities)):
+            
+            if i + 1 < len(velocities):
+                
+                action = 0
+                speed_change = velocities[i+1] - velocities[i]
+                upcomming_grad = gradients[i+1]
+                
+                if upcomming_grad > 0:
+                    upcomming_grad += 1
+                    action = upcomming_grad + speed_change
+                    
+                else:
+                    upcomming_grad -= 1
+                    action = upcomming_grad + speed_change
+
+                actions.append(action)
+        
+        actions.append(actions[-1])         # Artificially pad 
+        actions = np.array(actions)
+        
+        actions = (((actions - min(actions)) / (max(actions) - min(actions))) * (10 - 0)) + 0       # Transforming to scale of 0 to 10
+        actions = [round(i) for i in actions]
+        
+        self.actions = actions      
+                
     def process_data(self):
         
         self.processed_data = pd.DataFrame(self.data)
-        
-        print(self.processed_data)
-        
+                
         numerical_processing = ['altitude', 'distance', 'velocity_smooth', 'lat', 'lng', 'grade_smooth', 'heartrate']
         
         for col in numerical_processing:
@@ -75,10 +108,12 @@ class Enviroment:
         
         for col in moving_hot:
             self.processed_data[col] = moving_hot[col]
+        
+        self.processed_data['Actions'] = pd.Series(self.actions)
     
     def get_dataset(self):
         
-        return self.processed_data.to_numpy()            
+        return self.processed_data.to_numpy()  
              
     def analytics(self):
         
@@ -125,16 +160,13 @@ class Enviroment:
         
         print(f"Docs available: {num_available} out of: {total_docs}")
         print(total_keys.keys() - chosen_set)
-                
-        
-
-            
-            
+   
         print(keys)
     
 
 
 def main():
+    
     e = Enviroment()
     
 
