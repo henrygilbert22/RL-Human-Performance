@@ -27,10 +27,16 @@ class Enviroment:
         self.processed_data = pd.DataFrame()
         
         self.load_data()
-        self.infer_actions()
-        self.process_data()
     
+    def load_from_save(self):
+        
+        self.processed_data = pd.read_csv('env.csv')   
+        
     def load_data(self):
+        
+        if os.path.isfile('env.csv'):
+            self.load_from_save()
+            return
         
         dataset = {i: [] for i in self.chosen_inputs}
         
@@ -50,6 +56,9 @@ class Enviroment:
         df.drop('latlng', axis=1, inplace=True)
         
         self.data = df
+        
+        self.infer_actions()
+        self.process_data()
     
     def infer_actions(self):
         
@@ -110,6 +119,8 @@ class Enviroment:
             self.processed_data[col] = moving_hot[col]
         
         self.processed_data['Actions'] = pd.Series(self.actions)
+        
+        self.processed_data.to_csv('env.csv')
     
     def get_dataset(self):
         
