@@ -5,14 +5,14 @@ from keras import callbacks
 import numpy as np
 import sys
 
-from enviroment import Enviroment
+from environment import Environment
 
 class Dynamics:
     
     look_behind: int
     shift_amount: int
     layer_size: int
-    env: Enviroment
+    env: Environment
     data: list
     
     X: list = []
@@ -36,7 +36,7 @@ class Dynamics:
         self.look_behind = look_behind
         self.shift_amount = shift_amount
         self.layer_size = layer_size
-        self.env = Enviroment()
+        self.env = Environment()
         
         self.data = self.env.get_dataset()
         self.shift_data()

@@ -13,7 +13,7 @@ from sklearn.preprocessing import OneHotEncoder
 # Time is second increments (I think)
 
 
-class Enviroment:
+class Environment:
     
     chosen_inputs = {'altitude', 'distance', 'velocity_smooth', 'latlng', 'time', 'grade_smooth', 'moving', 'heartrate'}
     data = pd.DataFrame
@@ -178,7 +178,7 @@ class Enviroment:
 
 def main():
     
-    e = Enviroment()
+    e = Environment()
     
 
 if __name__ == '__main__':
