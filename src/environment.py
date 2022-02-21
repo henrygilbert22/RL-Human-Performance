@@ -139,9 +139,9 @@ class Environment:
             
             if folder_name.isnumeric() and os.path.isfile(f'data/{folder_name}/streams/data.json'):
                 with open(f'data/{folder_name}/streams/data.json') as f:
-                    data = json.load(f)
+                    self.data = json.load(f)
             
-            keys = frozenset(data.keys())
+            keys = frozenset(self.data.keys())
             if chosen_set.issubset(keys): num_available += 1
             total_docs += 1
             
@@ -179,6 +179,10 @@ class Environment:
 def main():
     
     e = Environment()
+    e.load_data()
+    # e.process_data()
+    # e.get_dataset()
+    e.analytics()
     
 
 if __name__ == '__main__':
