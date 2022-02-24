@@ -4,6 +4,7 @@ import sys
 import pandas as pd
 import numpy as np
 import json
+import matplotlib.pyplot as plt
 
 from sklearn.preprocessing import OneHotEncoder
 
@@ -174,15 +175,27 @@ class Environment:
    
         print(keys)
     
-
-
+    def validation(self):
+        """Examine the existing data visually in order to validate before applying machine learning model."""
+        for folder_name in os.listdir('data'):
+            if folder_name.isnumeric() and os.path.isfile(f'data/{folder_name}/streams/data.json'):
+                with open(f'data/{folder_name}/streams/data.json') as f:
+                    self.data = pd.read_json(f)
+                    if "heartrate" in self.data.columns:
+                        # customizable x and y 
+                        time_t = self.data['time']['data']
+                        heartrate_t = self.data['heartrate']['data']
+                        plt.plot(time_t, heartrate_t)
+                        plt.title("folder #", folder_name)
+                        plt.xlabel("time")
+                        plt.ylabel("heartrate")
+                        plt.show()
+                    else:
+                        print("folder #", folder_name, "does not contain heartrate data")
+                        
 def main():
-    
     e = Environment()
-    e.load_data()
-    # e.process_data()
-    # e.get_dataset()
-    e.analytics()
+    e.validation()
     
 
 if __name__ == '__main__':
