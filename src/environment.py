@@ -186,7 +186,7 @@ class Environment:
                         time_t = self.data['time']['data']
                         heartrate_t = self.data['heartrate']['data']
                         plt.plot(time_t, heartrate_t)
-                        plt.title("folder #", folder_name)
+                        plt.title("folder #" + folder_name)
                         plt.xlabel("time")
                         plt.ylabel("heartrate")
                         plt.show()
