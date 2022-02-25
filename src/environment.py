@@ -175,27 +175,37 @@ class Environment:
    
         print(keys)
     
-    def validation(self):
-        """Examine the existing data visually in order to validate before applying machine learning model."""
+    def validation(self, x, y):
+        """
+        Examine the existing data visually in order to validate before applying machine learning model.
+      
+        Parameters:
+        x (string): x label and parameter
+        y (string): y label and parameter
+        """
         for folder_name in os.listdir('data'):
             if folder_name.isnumeric() and os.path.isfile(f'data/{folder_name}/streams/data.json'):
                 with open(f'data/{folder_name}/streams/data.json') as f:
                     self.data = pd.read_json(f)
-                    if "heartrate" in self.data.columns:
+                    if (x in self.data.columns) and (y in self.data.columns):
                         # customizable x and y 
-                        time_t = self.data['time']['data']
-                        heartrate_t = self.data['heartrate']['data']
-                        plt.plot(time_t, heartrate_t)
+                        x_val = self.data[x]['data']
+                        y_val = self.data[y]['data']
+                        plt.plot(x_val, y_val)
                         plt.title("folder #" + folder_name)
-                        plt.xlabel("time")
-                        plt.ylabel("heartrate")
+                        plt.xlabel(x)
+                        plt.ylabel(y)
                         plt.show()
+                    elif (x not in self.data.columns) and (y in self.data.columns):
+                        print("folder #", folder_name, "does not contain", x, "data")
+                    elif (y not in self.data.columns) and (x in self.data.columns):
+                        print("folder #", folder_name, "does not contain", y, "data")
                     else:
-                        print("folder #", folder_name, "does not contain heartrate data")
+                        print("folder #", folder_name, "does not contain either", x, "or", y, "data")
                         
 def main():
     e = Environment()
-    e.validation()
+    e.validation("time", "heartrate")
     
 
 if __name__ == '__main__':
