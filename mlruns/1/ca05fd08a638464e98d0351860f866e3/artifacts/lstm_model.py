@@ -20,10 +20,8 @@ class LSTMModel:
     data: list
     d_lodaer: data_loader.DataLoader
 
-    train_X: list = []
-    train_Y: list = []
-    test_X: list = []
-    test_Y: list = []
+    X: list = []
+    Y: list = []
 
     train_data: tf.data.Dataset
     test_data: tf.data.Dataset
@@ -55,10 +53,10 @@ class LSTMModel:
 
     def build_dataset(self):
 
-        X_train = [[x] for x in np.array(self.train_X)]
-        X_test = [[x] for x in np.array(self.test_X)]
-        Y_train = [[y] for y in np.array(self.train_Y)]
-        Y_test = [[y] for y in np.array(self.test_Y)]
+        X_train = [[x] for x in np.array(self.X[0:int(len(self.X) * 0.8)])]
+        X_test = [[x] for x in np.array(self.X[int(len(self.X) * 0.8):])]
+        Y_train = [[x] for x in np.array(self.Y[0:int(len(self.Y) * 0.8)])]
+        Y_test = [[x] for x in np.array(self.Y[int(len(self.Y) * 0.8):])]
 
         train_data = tf.data.Dataset.from_tensor_slices((X_train, Y_train))
         train_data = train_data.batch(self.config['batch_size'], drop_remainder=True)
@@ -75,12 +73,7 @@ class LSTMModel:
         self.train_data = train_data
         self.test_data = test_data
 
-    def create_data(self):
-
-        self.train_X, self.train_Y = self.process_data(self.data)
-        self.test_X, self.test_Y = self.process_data(self.d_lodaer.get_testing_data())
-
-    def process_data(self, data: list):
+    def process_data(self):
         
         heartrate = self.data[:,3]
         grade_smooth = self.data[:,1]
@@ -92,9 +85,6 @@ class LSTMModel:
         v_segements = []
         c_segements = []
 
-        X = []
-        Y = []
-
         for i in range(len(heartrate) - (self.config['sequence_length'] + self.config['step_length'])):
 
             c_segements.append(cadence[i:i+self.config['sequence_length']])
@@ -104,10 +94,8 @@ class LSTMModel:
         
         for i in range(len(h_segements)):
 
-            X.append(list(c_segements[i]) + list(v_segements[i]) + list(g_segements[i]))
-            Y.append(h_segements[i])
-
-        return X, Y
+            self.X.append(list(c_segements[i]) + list(v_segements[i]) + list(g_segements[i]))
+            self.Y.append(h_segements[i])
 
     def build_model(self):
 
@@ -160,9 +148,10 @@ class LSTMModel:
         plt.legend()
         plt.savefig('figures/prediction.png')
 
+
     def run_experiment(self):
 
-        self.create_data()
+        self.process_data()
         self.build_dataset()
         self.build_model()
         history = self.train_model()

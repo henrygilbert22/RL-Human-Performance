@@ -46,7 +46,7 @@ class DataLoader:
     def process_data(self):
 
         self.processed_data = self.data
-        self.processed_data = self.processed_data[self.processed_data.cadence > 3]  
+        #self.processed_data = self.processed_data[self.processed_data.cadence > 3]  
 
         for col in self.processed_data:
 
@@ -64,10 +64,22 @@ class DataLoader:
         self.load_data()
         return self.processed_data.to_numpy()
 
+    def get_testing_data(self):
+
+        df = pd.read_json('test_data.json')   
+        df  = df[list(self.chosen_inputs)]  
+        
+        for col in df:
+
+            if col != 'heartrate':
+                df[col] = ((df[col]-df[col].min())/(df[col].max() - df[col].min()))
+
+        return df.to_numpy()
+
 def main():
 
     dl = DataLoader()
-    dl.get_processed_data()
+    dl.get_testing_data()
 
 if __name__ == '__main__':
     main()
