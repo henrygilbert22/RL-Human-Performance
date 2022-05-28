@@ -69,10 +69,14 @@ class DataLoader:
         df = pd.read_json('test_data.json')   
         df  = df[list(self.chosen_inputs)]  
         
-        for col in df:
+        new_df = pd.DataFrame()
 
+        for col in df:
+            new_df[col] = np.array(df[col]['data'])
+
+        for col in new_df:
             if col != 'heartrate':
-                df[col] = ((df[col]-df[col].min())/(df[col].max() - df[col].min()))
+                new_df[col] = ((new_df[col]-new_df[col].min())/(new_df[col].max() - new_df[col].min()))
 
         return df.to_numpy()
 

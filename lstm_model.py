@@ -18,7 +18,7 @@ class LSTMModel:
     config: dict
     model: object
     data: list
-    d_lodaer: data_loader.DataLoader
+    d_loader: data_loader.DataLoader
 
     train_X: list = []
     train_Y: list = []
@@ -33,8 +33,8 @@ class LSTMModel:
     def __init__(self, config: dict) -> None:
         
         self.config = config
-        self.d_lodaer = data_loader.DataLoader()
-        self.data = self.d_lodaer.get_processed_data()
+        self.d_loader = data_loader.DataLoader()
+        self.data = self.d_loader.get_processed_data()
 
         self.configure_mlflow()
         self.configure_tf_strat()
@@ -78,7 +78,7 @@ class LSTMModel:
     def create_data(self):
 
         self.train_X, self.train_Y = self.process_data(self.data)
-        self.test_X, self.test_Y = self.process_data(self.d_lodaer.get_testing_data())
+        self.test_X, self.test_Y = self.process_data(self.d_loader.get_testing_data())
 
     def process_data(self, data: list):
         
