@@ -46,16 +46,11 @@ class DataLoader:
     def process_data(self):
 
         self.processed_data = self.data
-        #self.processed_data = self.processed_data[self.processed_data.cadence > 3]  
 
         for col in self.processed_data:
 
             if col != 'heartrate':
                 self.processed_data[col] = ((self.processed_data[col]-self.processed_data[col].min())/(self.processed_data[col].max() - self.processed_data[col].min()))
-        
-        # z = np.abs(stats.zscore(self.processed_data['heartrate']))
-        # outliers_indexes = np.where(z > 3)
-        # self.processed_data.drop(self.processed_data.index[outliers_indexes])
 
         self.processed_data.to_csv('processed_data.csv', index=False)
 
