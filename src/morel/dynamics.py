@@ -5,7 +5,7 @@ from keras import callbacks
 import numpy as np
 import sys
 
-from environment import Environment
+from src.morel.environment import Environment
 
 class Dynamics:
     
