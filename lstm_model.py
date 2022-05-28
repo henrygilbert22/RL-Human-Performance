@@ -69,10 +69,10 @@ class LSTMModel:
 
     def process_data(self):
         
-        heartrate = self.data[:,2]
-        grade_smooth = self.data[:,1]
-        velocity_smooth = self.data[:,0]
-        cadence = self.data[:,3]
+        heartrate = self.data[:,0]
+        grade_smooth = self.data[:,3]
+        velocity_smooth = self.data[:,2]
+        cadence = self.data[:,1]
 
         h_segements = []
         g_segements = []
@@ -129,7 +129,7 @@ class LSTMModel:
         plt.plot(y_pred, label='predicted')
         plt.plot(Y_test, label='actual')
         plt.legend()
-        plt.savefig('figures/prediction.png')
+        plt.savefig('figures/prediction1.png')
 
 
     def run_experiment(self):
