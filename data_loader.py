@@ -40,19 +40,13 @@ class DataLoader:
                     for key in self.chosen_inputs:
                         dataset[key] += data[key]["data"]
 
-                    # plt.plot(data['heartrate']["data"], label='heartrate')
-                    # plt.plot(data['cadence']["data"], label='cadence')
-                    # plt.legend()
-                    # plt.savefig(f'data/{folder_name}/streams/heartrate_cadence.png')
-                    # plt.clf()
-                
         self.data = pd.DataFrame(data=dataset)   
         self.process_data()    
 
     def process_data(self):
 
         self.processed_data = self.data
-        #self.processed_data = self.processed_data[self.processed_data.cadence != 0]  
+        self.processed_data = self.processed_data[self.processed_data.cadence > 3]  
 
         for col in self.processed_data:
 

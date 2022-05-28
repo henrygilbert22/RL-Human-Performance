@@ -9,6 +9,7 @@ import os
 import mlflow
 from tensorflow.keras.layers import LSTM
 import matplotlib.pyplot as plt
+import sys
 
 import data_loader
 
@@ -33,7 +34,13 @@ class LSTMModel:
         self.d_lodaer = data_loader.DataLoader()
         self.data = self.d_lodaer.get_processed_data()
 
+        self.configure_mlflow()
         self.configure_tf_strat()
+
+    def configure_mlflow(self):
+
+        mlflow.set_experiment('hr_forecasting')
+        mlflow.start_run()
 
     def configure_tf_strat(self):
 
@@ -43,8 +50,7 @@ class LSTMModel:
             tf.config.experimental.set_memory_growth(gpu, True)
         
         self.strategy = tf.distribute.MirroredStrategy(["/gpu:0", "/gpu:1"])
-        mlflow.tensorflow.autolog() 
-    
+
     def build_dataset(self):
 
         X_train = [[x] for x in np.array(self.X[0:int(len(self.X) * 0.8)])]
@@ -56,23 +62,23 @@ class LSTMModel:
         train_data = train_data.batch(self.config['batch_size'], drop_remainder=True)
         options = tf.data.Options()
         options.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.OFF
-        train_data = train_data.with_options(options).prefetch(tf.data.AUTOTUNE)
+        train_data = train_data.with_options(options)
         
         test_data = tf.data.Dataset.from_tensor_slices((X_test, Y_test))
         test_data = test_data.batch(self.config['batch_size'], drop_remainder=True)
         options = tf.data.Options()
         options.experimental_distribute.auto_shard_policy = tf.data.experimental.AutoShardPolicy.OFF
-        test_data = test_data.with_options(options).prefetch(tf.data.AUTOTUNE)
+        test_data = test_data.with_options(options)
 
         self.train_data = train_data
         self.test_data = test_data
 
     def process_data(self):
         
-        heartrate = self.data[:,0]
-        grade_smooth = self.data[:,3]
+        heartrate = self.data[:,3]
+        grade_smooth = self.data[:,1]
         velocity_smooth = self.data[:,2]
-        cadence = self.data[:,1]
+        cadence = self.data[:,0]
 
         h_segements = []
         g_segements = []
@@ -98,8 +104,8 @@ class LSTMModel:
             init = tf.keras.initializers.HeUniform()        
             model = keras.Sequential()      
 
-            model.add(LSTM(50, input_shape=(1, self.config['sequence_length']*2  + self.config['step_length']), return_sequences=True, activation='relu'))
-            model.add(LSTM(50, return_sequences=False, activation='relu'))
+            model.add(LSTM(250, input_shape=(1, self.config['sequence_length']*2  + self.config['step_length']), return_sequences=True, activation='relu'))
+            model.add(LSTM(250, return_sequences=False, activation='relu'))
             model.add(keras.layers.Dense(1, activation='linear', kernel_initializer=init))
 
             model.compile(
@@ -111,25 +117,36 @@ class LSTMModel:
 
     def train_model(self):
 
-        es = EarlyStopping(monitor='val_mean_absolute_error', mode='min', min_delta=0.0001, patience=10, restore_best_weights=True)
+        es = EarlyStopping(monitor='val_mean_absolute_error', mode='min', min_delta=0.0001, patience=5, restore_best_weights=True)
 
-        self.model.fit(
+        history = self.model.fit(
             self.train_data, 
-            epochs=3, 
+            epochs=100, 
             callbacks=[es], 
             validation_data=self.test_data, 
             batch_size=self.config['batch_size']
         )
 
-    def test_model(self):
+    def log_experiment(self, history: dict):
 
-        Y_test = [[x] for x in np.array(self.Y[int(len(self.Y) * 0.8):])]
+        mlflow.log_artifact('lstm_model.py')
+        mlflow.log_artifact('figures/prediction.png')
+
+        for key, value in history.items():
+            [mlflow.log_metric(key, value[i]) for i in range(len(value))]
+
+        for key, value in self.config.items():
+            mlflow.log_param(key, value)
+
+    def test_model(self):
+        
+        Y_test = [x for x in np.array(self.Y[int(len(self.Y) * 0.8):])]
         y_pred = self.model.predict(self.test_data)
 
         plt.plot(y_pred, label='predicted')
         plt.plot(Y_test, label='actual')
         plt.legend()
-        plt.savefig('figures/prediction1.png')
+        plt.savefig('figures/prediction.png')
 
 
     def run_experiment(self):
@@ -137,8 +154,9 @@ class LSTMModel:
         self.process_data()
         self.build_dataset()
         self.build_model()
-        self.train_model()
+        history = self.train_model()
         self.test_model()
+        self.log_experiment(history)
 
 def main():
 
