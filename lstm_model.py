@@ -115,11 +115,21 @@ class LSTMModel:
 
         self.model.fit(
             self.train_data, 
-            epochs=100, 
+            epochs=3, 
             callbacks=[es], 
             validation_data=self.test_data, 
             batch_size=self.config['batch_size']
         )
+
+    def test_model(self):
+
+        Y_test = [[x] for x in np.array(self.Y[int(len(self.Y) * 0.8):])]
+        y_pred = self.model.predict(self.test_data)
+
+        plt.plot(y_pred, label='predicted')
+        plt.plot(Y_test, label='actual')
+        plt.legend()
+        plt.savefig('figures/prediction.png')
 
 
     def run_experiment(self):
@@ -128,6 +138,7 @@ class LSTMModel:
         self.build_dataset()
         self.build_model()
         self.train_model()
+        self.test_model()
 
 def main():
 

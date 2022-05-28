@@ -47,7 +47,9 @@ class DataLoader:
         self.processed_data = self.processed_data[self.processed_data.cadence != 0]  
 
         for col in self.processed_data:
-            self.processed_data[col] = ((self.processed_data[col]-self.processed_data[col].min())/(self.processed_data[col].max() - self.processed_data[col].min()))
+
+            if col != 'heartrate':
+                self.processed_data[col] = ((self.processed_data[col]-self.processed_data[col].min())/(self.processed_data[col].max() - self.processed_data[col].min()))
         
         self.processed_data.to_csv('processed_data.csv', index=False)
 
