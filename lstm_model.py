@@ -31,13 +31,18 @@ class LSTMModel:
         velocity_smooth = self.data[:,2]
         cadence = self.data[:,3]
 
-        
+        h_segements = [heartrate[i:i + self.config['sequence_length']] for i in range(0, len(heartrate), self.config['sequence_length'])] 
+        print(h_segements[0:3])
+
 
 
 
 def main():
 
-    model = LSTMModel({})
+    config = {
+        'sequence_length': 3,
+    }
+    model = LSTMModel(config)
     model.process_data()
 
 if __name__ == '__main__':

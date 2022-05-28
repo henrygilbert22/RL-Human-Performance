@@ -49,7 +49,7 @@ class DataLoader:
         for col in self.processed_data:
             self.processed_data[col] = ((self.processed_data[col]-self.processed_data[col].min())/(self.processed_data[col].max() - self.processed_data[col].min()))
         
-        self.processed_data.to_csv('processed_data.csv')
+        self.processed_data.to_csv('processed_data.csv', index=False)
 
     def get_processed_data(self):
 
