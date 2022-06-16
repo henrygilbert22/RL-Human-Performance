@@ -139,8 +139,6 @@ class LSTMModel:
             batch_size=self.config['batch_size']
         )
 
-        return history.history
-
     def log_experiment(self, history: dict):
 
         mlflow.log_artifact('lstm_model.py')
@@ -157,8 +155,8 @@ class LSTMModel:
         Y_test = [x for x in np.array(self.test_Y)]
         y_pred = self.model.predict(self.test_data)
 
-        plt.plot(y_pred[8000:10000], label='predicted')
-        plt.plot(Y_test[8000:10000], label='actual')
+        plt.plot(y_pred, label='predicted')
+        plt.plot(Y_test, label='actual')
         plt.legend()
         plt.savefig('figures/prediction.png')
 
