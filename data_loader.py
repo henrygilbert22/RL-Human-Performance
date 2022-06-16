@@ -47,9 +47,9 @@ class DataLoader:
                         dataset[key] += data[key]["data"]
 
         self.data = pd.DataFrame(data=dataset)   
-        self.process_data(name)    
+        self.process_and_save_data(name)    
 
-    def process_data(self, name: str):
+    def process_and_save_data(self, name: str):
 
         self.processed_data = self.data
         self.processed_data["test_heartrate"] = self.processed_data["heartrate"]
@@ -61,10 +61,39 @@ class DataLoader:
 
         self.processed_data.to_csv(f'{name}_data.csv', index=False)
 
+    def process_ride(self, data: dict):
+
+        processed_data = data
+        processed_data["test_heartrate"] = processed_data["heartrate"]
+
+        for col in processed_data:
+
+            if col != 'test_heartrate':
+                processed_data[col] = ((processed_data[col]-processed_data[col].min())/(processed_data[col].max() - processed_data[col].min()))
+
+
     def get_processed_data(self, train: bool = True):
 
         self.load_data(train)
         return self.processed_data.to_dict()
+
+    def load_individual_rides(self):
+
+
+        dataset = {i: [] for i in self.chosen_inputs}
+        for folder_name in os.listdir(f'{name}_data'):
+            if folder_name.isnumeric() and os.path.isfile(f'{name}_data/{folder_name}/streams/data.json'):
+                
+                with open(f'{name}_data/{folder_name}/streams/data.json') as f:
+                    data = json.load(f)
+                
+                if self.chosen_inputs.issubset(set(data.keys())):
+
+                    for key in self.chosen_inputs:
+                        dataset[key] += data[key]["data"]
+
+        self.data = pd.DataFrame(data=dataset)   
+        self.process_data(name)    
 
     def get_testing_data(self):
 
