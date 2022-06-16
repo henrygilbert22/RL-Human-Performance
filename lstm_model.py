@@ -14,7 +14,8 @@ class LSTMModel:
 
     config: dict
     model: object
-    data: list
+    train_data: list
+    test_data: list
     d_loader: data_loader.DataLoader
 
     train_X: list = []
@@ -31,7 +32,9 @@ class LSTMModel:
         
         self.config = config
         self.d_loader = data_loader.DataLoader()
-        self.data = self.d_loader.get_processed_data()
+        
+        self.train_data = self.d_loader.get_processed_data(True)
+        self.test_data = self.d_loader.get_processed_data(False)
 
         self.configure_mlflow()
         self.configure_tf_strat()
@@ -74,15 +77,9 @@ class LSTMModel:
 
     def create_data(self):
 
-        self.train_X, self.train_Y = self.process_data(self.data)
+        self.train_X, self.train_Y = self.process_data(self.train_data)
+        self.test_X, self.test_Y = self.process_data(self.test_data)
         
-        self.test_X = self.train_X[-int(len(self.train_X) * 0.2):]
-        self.test_Y = self.train_Y[-int(len(self.train_Y) * 0.2):]
-
-        self.train_X = self.train_X[:-int(len(self.train_X) * 0.2)]
-        self.train_Y = self.train_Y[:-int(len(self.train_Y) * 0.2)]
-
-        # Create train and test data folders for each run
     def process_data(self, data: dict):
         
         heartrate = list(data['heartrate'].values())

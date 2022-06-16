@@ -6,6 +6,7 @@ import json
 import matplotlib.pyplot as plt
 from scipy import stats
 import shutil
+import random
 
 class DataLoader:
 
@@ -18,45 +19,37 @@ class DataLoader:
         self.data = pd.DataFrame()
         self.processed_data = pd.DataFrame()
 
-    def load_from_save(self):
-        self.processed_data = pd.read_csv('processed_data.csv') 
+    def load_from_save(self, name: str):
+        self.processed_data = pd.read_csv(f'{name}_data.csv') 
 
-    def get_valid_folders(self):
+    def load_data(self, train: bool = True):
         
-        for folder_name in os.listdir('data'):
-            if folder_name.isnumeric() and os.path.isfile(f'data/{folder_name}/streams/data.json'):
-                
-                with open(f'data/{folder_name}/streams/data.json') as f:
-                    data = json.load(f)
-                
-                if not self.chosen_inputs.issubset(set(data.keys())):
-                    print(f'{folder_name} is not a valid folder')
-                    shutil.rmtree(f'data/{folder_name}')
+        if train:
+            name = "train"
+        else:
+            name = "test"
 
-    def load_data(self):
-        
-        if os.path.isfile('processed_data.csv'):
-            self.load_from_save()
+        if os.path.isfile(f'{name}_data.csv'):
+            self.load_from_save(name)
             return
         
         dataset = {i: [] for i in self.chosen_inputs}
-        valid_names = []
 
-        for folder_name in os.listdir('data'):
-            if folder_name.isnumeric() and os.path.isfile(f'data/{folder_name}/streams/data.json'):
+        for folder_name in os.listdir(f'{name}_data'):
+            if folder_name.isnumeric() and os.path.isfile(f'{name}_data/{folder_name}/streams/data.json'):
                 
-                with open(f'data/{folder_name}/streams/data.json') as f:
+                with open(f'{name}_data/{folder_name}/streams/data.json') as f:
                     data = json.load(f)
                 
                 if self.chosen_inputs.issubset(set(data.keys())):
-                    valid_names = []
+
                     for key in self.chosen_inputs:
                         dataset[key] += data[key]["data"]
 
         self.data = pd.DataFrame(data=dataset)   
-        self.process_data()    
+        self.process_data(name)    
 
-    def process_data(self):
+    def process_data(self, name: str):
 
         self.processed_data = self.data
         self.processed_data["test_heartrate"] = self.processed_data["heartrate"]
@@ -66,11 +59,11 @@ class DataLoader:
             if col != 'test_heartrate':
                 self.processed_data[col] = ((self.processed_data[col]-self.processed_data[col].min())/(self.processed_data[col].max() - self.processed_data[col].min()))
 
-        self.processed_data.to_csv('processed_data.csv', index=False)
+        self.processed_data.to_csv(f'{name}_data.csv', index=False)
 
-    def get_processed_data(self):
+    def get_processed_data(self, train: bool = True):
 
-        self.load_data()
+        self.load_data(train)
         return self.processed_data.to_dict()
 
     def get_testing_data(self):
