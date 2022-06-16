@@ -1,0 +1,15 @@
+artifact_uri: file:///home/copia-ml/GitHub/RL-Human-Performance/mlruns/1/dfa081875d8e4bb59757a1c8a3df7e5f/artifacts
+end_time: 1655411649126
+entry_point_name: ''
+experiment_id: '1'
+lifecycle_stage: active
+name: ''
+run_id: dfa081875d8e4bb59757a1c8a3df7e5f
+run_uuid: dfa081875d8e4bb59757a1c8a3df7e5f
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1655411647829
+status: 3
+tags: []
+user_id: copia-ml

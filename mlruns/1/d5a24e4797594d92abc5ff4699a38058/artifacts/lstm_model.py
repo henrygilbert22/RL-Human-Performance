@@ -75,14 +75,8 @@ class LSTMModel:
     def create_data(self):
 
         self.train_X, self.train_Y = self.process_data(self.data)
+        self.test_X, self.test_Y = self.process_data(self.d_loader.get_testing_data())
         
-        self.test_X = self.train_X[-int(len(self.train_X) * 0.2):]
-        self.test_Y = self.train_Y[-int(len(self.train_Y) * 0.2):]
-
-        self.train_X = self.train_X[:-int(len(self.train_X) * 0.2)]
-        self.train_Y = self.train_Y[:-int(len(self.train_Y) * 0.2)]
-
-        # Create train and test data folders for each run
     def process_data(self, data: dict):
         
         heartrate = list(data['heartrate'].values())
@@ -166,8 +160,8 @@ class LSTMModel:
         Y_test = [x for x in np.array(self.test_Y)]
         y_pred = self.model.predict(self.test_data)
 
-        plt.plot(y_pred, label='predicted')
-        plt.plot(Y_test, label='actual')
+        plt.plot(y_pred[8000:10000], label='predicted')
+        plt.plot(Y_test[8000:10000], label='actual')
         plt.legend()
         plt.savefig('figures/prediction.png')
 

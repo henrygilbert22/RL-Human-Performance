@@ -1,3 +1,6 @@
+import pickle
+import random
+import copy
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras.callbacks import EarlyStopping
@@ -75,24 +78,16 @@ class LSTMModel:
     def create_data(self):
 
         self.train_X, self.train_Y = self.process_data(self.data)
-        
-        self.test_X = self.train_X[-int(len(self.train_X) * 0.2):]
-        self.test_Y = self.train_Y[-int(len(self.train_Y) * 0.2):]
+        self.test_X, self.test_Y = self.process_data(self.d_loader.get_testing_data())
 
-        self.train_X = self.train_X[:-int(len(self.train_X) * 0.2)]
-        self.train_Y = self.train_Y[:-int(len(self.train_Y) * 0.2)]
-
-        # Create train and test data folders for each run
-    def process_data(self, data: dict):
+    def process_data(self, data: list):
         
-        heartrate = list(data['heartrate'].values())
-        test_heartrate = list(data['test_heartrate'].values())
-        grade_smooth = list(data['grade_smooth'].values())
-        velocity_smooth = list(data['velocity_smooth'].values())
-        cadence = list(data['cadence'].values())
+        heartrate = self.data[:,3]
+        grade_smooth = self.data[:,1]
+        velocity_smooth = self.data[:,2]
+        cadence = self.data[:,0]
 
         h_segements = []
-        h_test_segements = []
         g_segements = []
         v_segements = []
         c_segements = []
@@ -105,13 +100,12 @@ class LSTMModel:
             c_segements.append(cadence[i:i+self.config['sequence_length']])
             v_segements.append(velocity_smooth[i:i+self.config['sequence_length']])
             g_segements.append(grade_smooth[i+self.config['sequence_length']: i+self.config['sequence_length'] + self.config['step_length']])
-            h_segements.append(heartrate[i:i+self.config['sequence_length']])
-            h_test_segements.append(test_heartrate[i + self.config['sequence_length'] + self.config['step_length']])
+            h_segements.append(heartrate[i + self.config['sequence_length'] + self.config['step_length']])
         
         for i in range(len(h_segements)):
 
-            X.append(list(c_segements[i]) + list(v_segements[i]) + list(g_segements[i]) + list(h_segements[i]))
-            Y.append(h_test_segements[i])
+            X.append(list(c_segements[i]) + list(v_segements[i]) + list(g_segements[i]))
+            Y.append(h_segements[i])
 
         return X, Y
 
@@ -122,7 +116,7 @@ class LSTMModel:
             init = tf.keras.initializers.HeUniform()        
             model = keras.Sequential()      
 
-            model.add(LSTM(500, input_shape=(1, self.config['sequence_length']*3  + self.config['step_length']), return_sequences=True, activation='relu'))
+            model.add(LSTM(500, input_shape=(1, self.config['sequence_length']*2  + self.config['step_length']), return_sequences=True, activation='relu'))
             model.add(LSTM(500, return_sequences=True, activation='relu'))
             model.add(LSTM(500, return_sequences=True, activation='relu'))
             model.add(LSTM(500, return_sequences=False, activation='relu'))
@@ -137,11 +131,11 @@ class LSTMModel:
 
     def train_model(self):
 
-        es = EarlyStopping(monitor='val_mean_absolute_error', mode='min', min_delta=0.01, patience=5, restore_best_weights=True)
+        es = EarlyStopping(monitor='val_mean_absolute_error', mode='min', min_delta=0.0001, patience=5, restore_best_weights=True)
 
         history = self.model.fit(
             self.train_data, 
-            epochs=100, 
+            epochs=1, 
             callbacks=[es], 
             validation_data=self.test_data, 
             batch_size=self.config['batch_size'],
@@ -166,8 +160,8 @@ class LSTMModel:
         Y_test = [x for x in np.array(self.test_Y)]
         y_pred = self.model.predict(self.test_data)
 
-        plt.plot(y_pred, label='predicted')
-        plt.plot(Y_test, label='actual')
+        plt.plot(y_pred[8000:10000], label='predicted')
+        plt.plot(Y_test[8000:10000], label='actual')
         plt.legend()
         plt.savefig('figures/prediction.png')
 
