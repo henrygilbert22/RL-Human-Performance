@@ -71,29 +71,27 @@ class DataLoader:
             if col != 'test_heartrate':
                 processed_data[col] = ((processed_data[col]-processed_data[col].min())/(processed_data[col].max() - processed_data[col].min()))
 
+        return processed_data
 
     def get_processed_data(self, train: bool = True):
 
         self.load_data(train)
         return self.processed_data.to_dict()
 
-    def load_individual_rides(self):
+    def load_individual_test_rides(self):
 
-
-        dataset = {i: [] for i in self.chosen_inputs}
-        for folder_name in os.listdir(f'{name}_data'):
-            if folder_name.isnumeric() and os.path.isfile(f'{name}_data/{folder_name}/streams/data.json'):
+        rides = []
+        for folder_name in os.listdir(f'test_data'):
+            if folder_name.isnumeric() and os.path.isfile(f'test_data/{folder_name}/streams/data.json'):
                 
-                with open(f'{name}_data/{folder_name}/streams/data.json') as f:
+                with open(f'test_data/{folder_name}/streams/data.json') as f:
                     data = json.load(f)
                 
-                if self.chosen_inputs.issubset(set(data.keys())):
+                dataset = {key: data[key]["data"] for key in self.chosen_inputs}
+                rides.append(self.process_ride(dataset).to_dict())
+                
 
-                    for key in self.chosen_inputs:
-                        dataset[key] += data[key]["data"]
-
-        self.data = pd.DataFrame(data=dataset)   
-        self.process_data(name)    
+        return rides
 
     def get_testing_data(self):
 
