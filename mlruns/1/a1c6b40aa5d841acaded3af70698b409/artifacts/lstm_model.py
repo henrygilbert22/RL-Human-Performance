@@ -119,10 +119,10 @@ class LSTMModel:
             init = tf.keras.initializers.HeUniform()        
             model = keras.Sequential()      
 
-            model.add(LSTM(500, input_shape=(1, self.config['sequence_length']*3  + self.config['step_length']), return_sequences=True, activation='relu'))
-            model.add(LSTM(500, return_sequences=True, activation='relu'))
-            model.add(LSTM(500, return_sequences=True, activation='relu'))
-            model.add(LSTM(500, return_sequences=False, activation='relu'))
+            model.add(LSTM(50, input_shape=(1, self.config['sequence_length']*3  + self.config['step_length']), return_sequences=True, activation='relu'))
+            model.add(LSTM(50, return_sequences=True, activation='relu'))
+            model.add(LSTM(50, return_sequences=True, activation='relu'))
+            model.add(LSTM(50, return_sequences=False, activation='relu'))
             model.add(keras.layers.Dense(1, activation='linear', kernel_initializer=init))
 
             model.compile(
