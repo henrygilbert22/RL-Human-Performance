@@ -119,10 +119,10 @@ class LSTMModel:
             init = tf.keras.initializers.HeUniform()        
             model = keras.Sequential()      
 
-            model.add(LSTM(500, input_shape=(1, self.config['sequence_length']*3  + self.config['step_length']), return_sequences=True, activation='relu'))
-            model.add(LSTM(500, return_sequences=True, activation='relu'))
-            model.add(LSTM(500, return_sequences=True, activation='relu'))
-            model.add(LSTM(500, return_sequences=False, activation='relu'))
+            model.add(LSTM(50, input_shape=(1, self.config['sequence_length']*3  + self.config['step_length']), return_sequences=True, activation='relu'))
+            model.add(LSTM(50, return_sequences=True, activation='relu'))
+            model.add(LSTM(50, return_sequences=True, activation='relu'))
+            model.add(LSTM(50, return_sequences=False, activation='relu'))
             model.add(keras.layers.Dense(1, activation='linear', kernel_initializer=init))
 
             model.compile(
@@ -138,19 +138,21 @@ class LSTMModel:
 
         history = self.model.fit(
             self.train_data, 
-            epochs=100, 
+            epochs=1, 
             callbacks=[es], 
             validation_data=self.test_data, 
             batch_size=self.config['batch_size'],
             shuffle=True
         )
 
+        self.model.save(f'models/model.h5')
         return history.history
 
     def log_experiment(self, history: dict):
 
         mlflow.log_artifact('lstm_model.py')
-        mlflow.log_artifact('figures/prediction.png')
+        mlflow.log_artifact('figures')
+        mlflow.log_artifact('models')
 
         for key, value in history.items():
             [mlflow.log_metric(key, value[i]) for i in range(len(value))]
@@ -158,15 +160,44 @@ class LSTMModel:
         for key, value in self.config.items():
             mlflow.log_param(key, value)
 
+    def calculate_relative_zone_error(self, pred: list, actual: list):
+
+        relative_zone_error = []
+        for i in range(len(pred)):
+            relative_zone_error.append(abs(pred[i] - actual[i]) / 20)
+
+        return sum(relative_zone_error) / len(relative_zone_error)
+
     def test_model(self):
         
-        Y_test = [x for x in np.array(self.test_Y)]
-        y_pred = self.model.predict(self.test_data)
+        test_runs = self.d_loader.load_individual_test_rides()
+        mae_comp = tf.keras.losses.MeanAbsoluteError()
+        maes = []
+        rzes = []
 
-        plt.plot(y_pred, label='predicted')
-        plt.plot(Y_test, label='actual')
-        plt.legend()
-        plt.savefig('figures/prediction.png')
+        for i in range(len(test_runs)):
+            
+            self.test_X, self.test_Y = self.process_data(test_runs[i])
+            self.build_dataset()
+
+            Y_test = [x for x in np.array(self.test_Y)]
+            y_pred = self.model.predict(self.test_data)
+
+            mae = float(mae_comp(y_pred, Y_test).numpy())
+            relative_zone_error = self.calculate_relative_zone_error(y_pred, Y_test)[0]
+            maes.append(mae)
+            rzes.append(relative_zone_error)
+
+            plt.plot(y_pred, label='predicted')
+            plt.plot(Y_test, label='actual')
+            plt.title(f'MAE: {round(mae, 2)} - Relative-Zone-Error: {round(relative_zone_error, 2)}')
+            plt.legend()
+            plt.savefig(f'figures/prediction_{i}.png')
+            plt.clf()
+        
+        mlflow.log_metric('avg_test_mae', sum(maes) / len(maes))
+        mlflow.log_metric('avg_test_rze', sum(rzes) / len(rzes))
+
 
     def run_experiment(self):
 

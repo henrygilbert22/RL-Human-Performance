@@ -88,12 +88,12 @@ class DataLoader:
                     data = json.load(f)
                 
                 dataset = {key: data[key]["data"] for key in self.chosen_inputs}
-                rides.append(self.process_ride(dataset).to_dict())
+                rides.append(self.process_ride(pd.DataFrame(data=dataset)).to_dict())
                 
 
         return rides
 
-    def get_testing_data(self):
+    def get_single_testing_data(self):
 
         with open('test_data.json') as f:
             
